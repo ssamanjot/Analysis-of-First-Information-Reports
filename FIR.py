@@ -5,11 +5,16 @@ from tesserocr import PyTessBaseAPI
 from PIL import Image
 import sys
 from os import path
+from cltk.stop.punjabi.stops import STOPS_LIST
+import re
+from inltk.inltk import get_embedding_vectors
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 class Preprocessing:
 
 #PDF2Image is a function to convert PDF to images
-    def PDF2Image(rootdir):
+    def PDF2Image(self,rootdir):
 
         file_paths = []
         file_p = []
@@ -34,18 +39,23 @@ class Preprocessing:
     def Text2Dataframe(FIRDf,Textdata,FIRCompContent):
 
         listToStr = ' '.join(map(str, Textdata))
-
+        FIRContentPresent=0
 
         if listToStr.lower().__contains__('first information contents'):
+            FIRContentPresent = 1
             Content = listToStr.lower().split('first information contents')[1]
         elif(listToStr.lower().__contains__('12') ):
-            Content = listToStr.lower().split('12')[1:]
+            FIRContentPresent = 1
+            Content = listToStr.lower().split('12',1)[1]
             if type(Content) == list:
+                Content=str(Content)
                 print (Content,"HAVE TO WORK ON THIS")
 
         elif ((listToStr.lower().__contains__('13')) and (listToStr.lower().__contains__('Action'))):
+            FIRContentPresent = 1
             Content = listToStr.lower().split('13')[0]
-        FIRCompContent = FIRCompContent + Content
+        if(FIRContentPresent==1):
+            FIRCompContent = FIRCompContent + Content
 
 
 
@@ -59,11 +69,29 @@ class Preprocessing:
             for img in ImageFileSplitted:
 
                 FIRCompContent = ""
+
+                if img.lower().__contains__(', dated'):
+                    ImagesDtLoc = img.split(', dated')[1]
+                elif img.lower().__contains__(',dated'):
+                    ImagesDtLoc = img.split(',dated')[1]
+                else:
+                    ImagesDtLoc = img.split(',')[1]
+
+                if ImagesDtLoc.lower().__contains__('-19 '):
+                    ImageLocation=ImagesDtLoc.split('-19 ',1)[1]
+                elif ImagesDtLoc.lower().__contains__('19-'):
+                    ImageLocation = ImagesDtLoc.split('19-', 1)[1]
+                elif ImagesDtLoc.lower().__contains__('-2019 '):
+                    ImageLocation = ImagesDtLoc.split('-2019 ', 1)[1]
+
+                ImageDt=ImagesDtLoc.split(ImageLocation,1)[0]
+
                 for iter in range(3,9):
-                    ImageNminPNG=img + '_' + str(iter) + '.png'
+                    ImageNminPNG=img + '_' + str(iter) + '.jpg'
                     Textdata=[]
 
                     if(path.exists(ImageNminPNG))==True:
+                        print(ImageNminPNG)
                         column = Image.open(ImageNminPNG)
                         gray = column.convert('L')
                         blackwhite = gray.point(lambda x: 0 if x < 200 else 255, '1')
@@ -75,7 +103,10 @@ class Preprocessing:
                         FIRDf,FIRCompContent = Preprocessing.Text2Dataframe(FIRDf, Textdata,FIRCompContent)
                     else:
                         break
-                FIRDf = FIRDf.append({'First_Information_Contents': FIRCompContent}, ignore_index=True)
+                FIRDf = FIRDf.append({'First_Information_Contents': FIRCompContent,'Date_and_Location': ImagesDtLoc,'FIR_Location': ImageLocation,'FIR_Date':ImageDt,'PDF_Name': img}, ignore_index=True)
+                #FIRDf = FIRDf.append({'Date_and_Location': ImagesDtLoc}, ignore_index=True)
+                #FIRDf = FIRDf.append({}, ignore_index=True)
+
         return FIRDf
 
 #FileNamesinList is a function used to store the names of png and jpg files at a specified path
@@ -95,13 +126,71 @@ class Preprocessing:
 
         return files, ImgFiles, ImageFileSplitted
 
+    def removeStopWords(dataFrame):
+        for index,document in enumerate(dataFrame):
+            print(index)
+            document=str(document).split(' ')
+            DocWithoutStopwrds = [word for word in document if not word in STOPS_LIST]
 
-files = []
-rootdir = '/home/nitpreet/Documents/Fir/FIR/FEB-2019/'
-FIRDf = pd.DataFrame(columns=['First_Information_Contents'])
-files,ImgFiles,ImageFileSplitted=Preprocessing.FileNamesinList(files)
-FIRDf=Preprocessing.Image2Text(ImgFiles,ImageFileSplitted,FIRDf)
+            dataFrame[index]=DocWithoutStopwrds
+        return dataFrame
 
-FIRDf.to_csv(r'FIRDf.csv')
-#FIRDf=Preprocessing.Text2Dataframe(FIRDf,Textdata)
-df=pd.read_csv('FIRDf.csv')
+    def WordEmbeddings(self,VocabWords):
+
+        VectList=[]
+        VectList1=[]
+        VectList2=[]
+
+
+        #dataFrame=pd.DataFrame(dataFrame)
+
+        # for List in dataFrame.index:
+        #     Word=(dataFrame['First_Information_Contents'][List])
+        #     Word=Word.replace("'","")
+        #     Words=[(i) for i in Word.split(",")]
+        #     for j in Words:
+        #         WordList.append(j)
+        #
+        # WordList=list(set(WordList))
+        # Word_String=' '.join(word for word in WordList)
+        # print(Word_String)
+
+        iter=0
+
+        print('Hello')
+        for eachword in VocabWords:
+            iter = iter + 1
+            print(iter)
+            print(eachword)
+            Vect = get_embedding_vectors(str(eachword), 'pa')
+
+            VectList1.append(Vect)
+
+        print(len(VectList1))
+        return VectList1
+
+
+
+#files = []
+os.chdir(r'C:\Users\Aman\PycharmProjects\Sabudh\MachineLearning\ProjectWork\data\Feb')
+#rootdir = '/home/nitpreet/Documents/Fir/FIR/FEB-2019/'
+#FIRDf = pd.DataFrame(columns=['First_Information_Contents','Date_and_Location','FIR_Location','FIR_Date','PDF_Name'])
+#files,ImgFiles,ImageFileSplitted=Preprocessing.FileNamesinList(files)
+
+#FIRDf=Preprocessing.Image2Text(ImgFiles,ImageFileSplitted,FIRDf)
+#FIRDf.to_csv(r'FIRDf.csv')
+
+#Df=pd.read_csv('FIRDf.csv')
+#Df['First_Information_Contents']=Preprocessing.removeStopWords(Df['First_Information_Contents'])
+#Df.to_csv(r'FIRDf_WithoutStopwords.csv')
+#FIRDf_WithoutStopwords = pd.read_csv('FIRDf_WithoutStopwords.csv')
+
+# tf = TfidfVectorizer()
+# Content = tf.fit_transform(FIRDf_WithoutStopwords['First_Information_Contents']).toarray()
+# VocabWords=list(tf.vocabulary_.keys())
+# print(VocabWords)
+# np.save('VocabWords.npy', VocabWords)
+VocabWords = np.load('VocabWords.npy')
+
+
+EmbeddingList=Preprocessing().WordEmbeddings(VocabWords)
