@@ -1,6 +1,8 @@
-##**Semantics using NLP for handwritten Punjabi FIR Reports**
-.
-#*Overview*
+# **Semantics using NLP for handwritten Punjabi FIR Reports**
+
+
+## *Overview*
+
 >**Natural Language Processing** is a subfield of Machine learning that is concerned with linguistics, computers and Artificial intelligence. 
 ?NLP provides a great significance to the interaction of Human languages with Computers.
 
@@ -12,7 +14,7 @@
 >As it is a live project for Punjab police,a extension to this involves creation of Chatbot that would ask Punjab police to provide further information of what is not provided in the FIR.
 
 
-#*Implementation*
+## *Implementation*
 >FIR reports were provided in the form of PDF of generally 5 images. The general format of FIR report contained Information content of the FIR written in the praragraph form starting from third page.
 
 >First task was to extract images from FIR PDF and save them with naming convention to easily identify images of any FIR PDF.
