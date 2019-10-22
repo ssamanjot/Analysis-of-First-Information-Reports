@@ -15,7 +15,9 @@
 
 
 ## *Implementation*
->FIR reports were provided in the form of PDF of generally 5 images. The general format of FIR report contained Information content of the FIR written in the praragraph form starting from third page.
+>FIR reports were provided in the form of PDF of generally 5 images. The general format of FIR report contained Information content of the FIR written in the paragraph form starting from third page.
+![Fir no- 14, dated 03-2-2019-MGA pdf3](https://user-images.githubusercontent.com/12868865/67265190-c4923c80-f4ca-11e9-98f2-402495a18fbd.jpg)
+
 
 >First task was to extract images from FIR PDF and save them with naming convention to easily identify images of any FIR PDF.
 >FIR report images contained handwritten texts. There are various Image to Text libraries for English language but the task here was to convert the Image to Text for Punjabi language . OCR tessract was used to convert Punjabi FIR images to Text .
