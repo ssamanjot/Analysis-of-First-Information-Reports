@@ -4,7 +4,7 @@
 ## *Overview*
 
 >**Natural Language Processing** is a subfield of Machine learning that is concerned with linguistics, computers and Artificial intelligence. 
-?NLP provides a great significance to the interaction of Human languages with Computers.
+NLP provides a great significance to the interaction of Human languages with Computers.
 
 >**Semantics using NLP for handwritten Punjabi FIR reports** is NLP project which takes into account the  Punjabi language text for operations.
 
